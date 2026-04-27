@@ -11,7 +11,9 @@ body { background:#000; overflow:hidden; width:100vw; height:100vh; font-family:
 /* Scroll container */
 #reel-wrap {
   position:absolute; inset:0;
-  overflow:scroll; -webkit-overflow-scrolling:touch;
+  overflow-x:auto;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
   scrollbar-width:none;
 }
 #reel-wrap::-webkit-scrollbar { display:none; }
@@ -77,7 +79,6 @@ body { background:#000; overflow:hidden; width:100vw; height:100vh; font-family:
 const roll = {
   title: 'Ilford HP5',
   frames: Array.from({length: 10}, (_, i) => ({
-    strip: `strip/${i}.jpg`,
     full: `full/${i}.jpg`,
     title: ''
   }))
@@ -90,20 +91,23 @@ let lbIndex = 0;
 function buildReel() {
   const vw = window.innerWidth, vh = window.innerHeight;
   const land = vw > vh;
+  const stripFolder = land ? 'strip-landscape' : 'strip-portrait';
   const reel = document.getElementById('reel');
   reel.innerHTML = '';
 
   if (land) {
     const fixedH = vh;
-    reel.style.cssText = `flex-direction:column;width:max-content;min-height:${vh}px;`;
-    const frow = document.createElement('div'); frow.className = 'f-row';
-    roll.frames.forEach((fr, i) => { const f = mkFrame(i); frow.appendChild(f); loadCanvas(f, fr.strip, fixedH, true); });
-    reel.appendChild(frow);
+    reel.style.cssText = `display:flex; flex-direction:row; height:${vh}px; width:max-content;`;
+    roll.frames.forEach((fr, i) => {
+      const f = mkFrame(i);
+      reel.appendChild(f);
+      loadCanvas(f, `${stripFolder}/${i}.jpg`, fixedH, true);
+    });
   } else {
     const fixedW = vw;
-    reel.style.cssText = `flex-direction:row;height:max-content;width:${vw}px;`;
+    reel.style.cssText = `flex-direction:column;height:max-content;width:${vw}px;`;
     const fcol = document.createElement('div'); fcol.className = 'f-col'; fcol.style.width = fixedW + 'px';
-    roll.frames.forEach((fr, i) => { const f = mkFrame(i); fcol.appendChild(f); loadCanvas(f, fr.strip, fixedW, false); });
+    roll.frames.forEach((fr, i) => { const f = mkFrame(i); fcol.appendChild(f); loadCanvas(f, `${stripFolder}/${i}.jpg`, fixedW, false); });
     reel.appendChild(fcol);
   }
   updateCounter();
