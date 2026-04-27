@@ -6,7 +6,7 @@
 <title>Film Roll</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background:#111; overflow:hidden; width:100vw; height:100vh; font-family:'Courier New',monospace; color:#ccc; }
+body { background:#000; overflow:hidden; width:100vw; height:100vh; font-family:'Courier New',monospace; color:#ccc; }
 
 /* Scroll container */
 #reel-wrap {
@@ -14,7 +14,7 @@ body { background:#111; overflow:hidden; width:100vw; height:100vh; font-family:
   overflow:scroll; -webkit-overflow-scrolling:touch; scrollbar-width:none;
 }
 #reel-wrap::-webkit-scrollbar { display:none; }
-#reel { display:flex; background:#1a1a1a; }
+#reel { display:flex; background:#000; }
 
 /* Counter */
 #counter {
@@ -23,12 +23,6 @@ body { background:#111; overflow:hidden; width:100vw; height:100vh; font-family:
   padding:4px 14px; border-radius:20px;
   font-size:13px; letter-spacing:2px; z-index:200; pointer-events:none;
 }
-
-/* Sprockets */
-.sp-row { display:flex; flex-direction:row; background:#1a1a1a; padding:6px 0; flex-shrink:0; }
-.sp-h { width:18px; height:12px; background:#111; border-radius:3px; margin:0 5px; flex-shrink:0; }
-.f-row { display:flex; flex-direction:row; background:#000; }
-.f-col { display:flex; flex-direction:column; background:#000; }
 
 .frame { flex-shrink:0; position:relative; overflow:hidden; cursor:pointer; }
 .frame canvas { display:block; filter:sepia(12%) contrast(1.05); transition:filter 0.2s; }
@@ -90,10 +84,10 @@ body { background:#111; overflow:hidden; width:100vw; height:100vh; font-family:
 // full/   — full lightbox images (pre-edited, correct orientation)
 // ============================================================
 const roll = {
-  title: 'Roll 1',
-  frames: Array.from({length: 6}, (_, i) => ({
-    strip: `strip/${i+1}.jpg`,
-    full: `full/${i+1}.jpg`,
+  title: 'Ilford HP5',
+  frames: Array.from({length: 10}, (_, i) => ({
+    strip: `strip/${i}.jpg`,
+    full: `full/${i}.jpg`,
     title: ''
   }))
 };
@@ -182,19 +176,24 @@ function updateCounter() {
     const dist = land ? Math.abs(r.left+r.width/2-window.innerWidth/2) : Math.abs(r.top+r.height/2-window.innerHeight/2);
     if (dist < minDist) { minDist = dist; closest = i; }
   });
-  document.getElementById('counter').textContent = `${closest+1} / ${roll.frames.length}`;
+  document.getElementById('counter').textContent = `${closest} / ${roll.frames.length - 1}`;
 }
 document.getElementById('reel-wrap').addEventListener('scroll', updateCounter);
 window.addEventListener('resize', buildReel);
 
 // ── Lightbox ──
 function openLightbox(i) { lbIndex = i; renderLightbox(); document.getElementById('lightbox').classList.add('open'); }
-function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  // Scroll the active frame back into view
+  const frame = document.querySelectorAll('.frame')[lbIndex];
+  if (frame) frame.scrollIntoView({ behavior: 'instant', block: 'center', inline: 'center' });
+}
 
 function renderLightbox() {
   const { full, title } = roll.frames[lbIndex];
   document.getElementById('lb-img').src = full;
-  document.getElementById('lb-counter').textContent = `${lbIndex+1} / ${roll.frames.length}`;
+  document.getElementById('lb-counter').textContent = `${lbIndex} / ${roll.frames.length - 1}`;
   document.getElementById('lb-title').textContent = title || '';
 }
 
