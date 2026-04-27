@@ -6,13 +6,13 @@
 <title>Film Roll</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background:#000; overflow:hidden; width:100vw; height:100vh; font-family:'Courier New',monospace; color:#ccc; overscroll-behavior: none; touch-action: none;}
+body { background:#000; overflow:hidden; width:100vw; height:100vh; font-family:'Courier New',monospace; }
 
 /* Scroll container */
 #reel-wrap {
   position:absolute; inset:0;
-  overflow:scroll; -webkit-overflow-scrolling:touch; scrollbar-width:none;
-  touch-action: pan-x pan-y;
+  overflow:scroll; -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
 }
 #reel-wrap::-webkit-scrollbar { display:none; }
 #reel { display:flex; background:#000; }
@@ -23,15 +23,6 @@ body { background:#000; overflow:hidden; width:100vw; height:100vh; font-family:
   background:rgba(0,0,0,0.65); color:#f0e6c8;
   padding:4px 14px; border-radius:20px;
   font-size:13px; letter-spacing:2px; z-index:200; pointer-events:none;
-}
-
-.frame { flex-shrink:0; position:relative; overflow:hidden; cursor:pointer; }
-.frame canvas { display:block; filter:sepia(12%) contrast(1.05); transition:filter 0.2s; }
-.frame-num { position:absolute; bottom:4px; right:6px; color:rgba(240,230,180,0.5); font-size:9px; letter-spacing:1px; pointer-events:none; }
-.frame::after {
-  content:''; position:absolute; inset:0; pointer-events:none;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
-  opacity:0.18; mix-blend-mode:overlay;
 }
 
 /* Lightbox */
@@ -126,7 +117,7 @@ function mkSpH(n) {
 
 function mkFrame(i) {
   const frame = document.createElement('div');
-  frame.className = 'frame'; frame.style.background = '#000'; frame.dataset.index = i;
+  frame.className = 'frame'; frame.dataset.index = i;
   const cv = document.createElement('canvas'); frame.appendChild(cv);
   frame.addEventListener('click', () => openLightbox(i));
   return frame;
@@ -135,32 +126,13 @@ function mkFrame(i) {
 function loadCanvas(frameEl, src, fixedDim, isLand) {
   const img = new Image();
   img.onload = () => {
-    let w, h;
-    if (isLand) {
-      // Natural orientation — fix height, width from aspect ratio
-      const nat = img.naturalWidth / img.naturalHeight;
-      h = fixedDim;
-      w = Math.round(fixedDim * nat);
-      frameEl.style.width = w+'px'; frameEl.style.height = h+'px';
-      const cv = frameEl.querySelector('canvas');
-      cv.width=w; cv.height=h; cv.style.width=w+'px'; cv.style.height=h+'px';
-      cv.getContext('2d').drawImage(img, 0, 0, w, h);
-    } else {
-      // Rotate 90° CW — canvas width = screen width (fixedDim)
-      // Image natural: wide × tall. After 90° rotation displayed as: tall × wide
-      // So displayed aspect = naturalWidth / naturalHeight (inverted from normal)
-      w = fixedDim;
-      h = Math.round(fixedDim * img.naturalWidth / img.naturalHeight);
-      frameEl.style.width = w+'px'; frameEl.style.height = h+'px';
-      const cv = frameEl.querySelector('canvas');
-      cv.width=w; cv.height=h; cv.style.width=w+'px'; cv.style.height=h+'px';
-      const ctx = cv.getContext('2d');
-      ctx.save();
-      ctx.translate(w, 0);
-      ctx.rotate(Math.PI / 2);
-      ctx.drawImage(img, 0, 0, h, w);
-      ctx.restore();
-    }
+    const nat = img.naturalWidth / img.naturalHeight;
+    const w = isLand ? Math.round(fixedDim * nat) : fixedDim;
+    const h = isLand ? fixedDim : Math.round(fixedDim / nat);
+    frameEl.style.width = w+'px'; frameEl.style.height = h+'px';
+    const cv = frameEl.querySelector('canvas');
+    cv.width=w; cv.height=h; cv.style.width=w+'px'; cv.style.height=h+'px';
+    cv.getContext('2d').drawImage(img, 0, 0, w, h);
   };
   img.src = src;
 }
